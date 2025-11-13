@@ -12,20 +12,19 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
-import sexmachine.detector as gender
-from sklearn.preprocessing import Imputer
-from sklearn import cross_validation
+import gender_guesser.detector as gender
+from sklearn.impute import SimpleImputer as Imputer
+from sklearn import model_selection
 from sklearn import metrics
 from sklearn import preprocessing
 from sklearn.metrics import roc_curve, auc
 from  sklearn.ensemble import RandomForestClassifier
-from sklearn.cross_validation import StratifiedKFold, train_test_split
-from sklearn.grid_search import GridSearchCV
+from sklearn.model_selection import train_test_split, StratifiedKFold, GridSearchCV
 from sklearn.metrics import accuracy_score
-from sklearn.learning_curve import learning_curve
+from sklearn.model_selection import learning_curve
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-get_ipython().magic(u'matplotlib inline')
+# get_ipython().magic(u'matplotlib inline')  # Commented out as it's specific to Jupyter
 
 
 ####### function for reading dataset from csv files
@@ -51,26 +50,61 @@ def read_datasets():
 # In[56]:
 
 def predict_sex(name):
-    sex_predictor = gender.Detector(unknown_value=u"unknown",case_sensitive=False)
-    first_name= name.str.split(' ').str.get(0)
-    sex= first_name.apply(sex_predictor.get_gender)
-    sex_dict={'female': -2, 'mostly_female': -1,'unknown':0,'mostly_male':1, 'male': 2}
-    sex_code = sex.map(sex_dict).astype(int)
-    return sex_code
+    sex_predictor = gender.Detector()
+    first_name = name.str.split(' ').str.get(0)
+    
+    def get_gender(fname):
+        if not isinstance(fname, str):
+            return 0  # unknown
+        result = sex_predictor.get_gender(fname)
+        if result in ['female', 'mostly_female']:
+            return -1  # female
+        elif result in ['male', 'mostly_male']:
+            return 1   # male
+        else:
+            return 0   # unknown
+    
+    return first_name.apply(get_gender)
 
 
 ####### function for feature engineering
 
 # In[57]:
 
+# Global variable to store language mapping
+global_lang_dict = {}
+
 def extract_features(x):
-    lang_list = list(enumerate(np.unique(x['lang'])))   
-    lang_dict = { name : i for i, name in lang_list }             
-    x.loc[:,'lang_code'] = x['lang'].map( lambda x: lang_dict[x]).astype(int)    
-    x.loc[:,'sex_code']=predict_sex(x['name'])
-    feature_columns_to_use = ['statuses_count','followers_count','friends_count','favourites_count','listed_count','sex_code','lang_code']
-    x=x.loc[:,feature_columns_to_use]
-    return x
+    global global_lang_dict
+    
+    # If 'lang' column exists, process it
+    if 'lang' in x.columns:
+        # Create language mapping if it doesn't exist
+        if not global_lang_dict:
+            unique_langs = x['lang'].unique()
+            global_lang_dict = {name: i for i, name in enumerate(unique_langs)}
+        
+        # Map language to code
+        x.loc[:, 'lang_code'] = x['lang'].map(lambda x: global_lang_dict.get(x, 0)).astype(int)
+    else:
+        # If 'lang' column doesn't exist, use default value (0 for unknown)
+        x['lang_code'] = 0
+    
+    # Predict gender from name (but we'll set it to 0 since we're not using names anymore)
+    x['sex_code'] = 0
+    
+    # Select only the features we want to use
+    feature_columns_to_use = [
+        'statuses_count', 'followers_count', 'friends_count',
+        'sex_code', 'lang_code'
+    ]
+    
+    # Ensure all required columns exist
+    for col in feature_columns_to_use:
+        if col not in x.columns:
+            x[col] = 0  # Default value for missing columns
+    
+    return x[feature_columns_to_use], global_lang_dict
 
 
 ####### function for ploting learning curve
@@ -132,8 +166,8 @@ def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues):
 def plot_roc_curve(y_test, y_pred):
     false_positive_rate, true_positive_rate, thresholds = roc_curve(y_test, y_pred)
 
-    print "False Positive rate: ",false_positive_rate
-    print "True Positive rate: ",true_positive_rate
+    print("False Positive rate: ", false_positive_rate)
+    print("True Positive rate: ", true_positive_rate)
 
 
     roc_auc = auc(false_positive_rate, true_positive_rate)
@@ -154,54 +188,73 @@ def plot_roc_curve(y_test, y_pred):
 
 # In[63]:
 
-def train(X_train,y_train,X_test):
-    """ Trains and predicts dataset with a Random Forest classifier """
+def train(X_train, y_train, X_test):
+    # Scale the features
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
     
-    clf=RandomForestClassifier(n_estimators=40,oob_score=True)
-    clf.fit(X_train,y_train)
-    print("The best classifier is: ",clf)
+    # Use class_weight='balanced' to handle any class imbalance
+    clf = RandomForestClassifier(
+        n_estimators=100,
+        max_depth=10,
+        min_samples_split=5,
+        min_samples_leaf=2,
+        class_weight='balanced',
+        random_state=42,
+        oob_score=True
+    )
+    
+    clf.fit(X_train_scaled, y_train)
+    print("The best classifier is: ", clf)
+    
     # Estimate score
-    scores = cross_validation.cross_val_score(clf, X_train,y_train, cv=5)
-    print scores
+    scores = model_selection.cross_val_score(clf, X_train_scaled, y_train, cv=5)
+    print("Cross-validation scores:", scores)
     print('Estimated score: %0.5f (+/- %0.5f)' % (scores.mean(), scores.std() / 2))
-    title = 'Learning Curves (Random Forest)'
-    plot_learning_curve(clf, title, X_train, y_train, cv=5)
-    plt.show()
-    # Predict 
-    y_pred = clf.predict(X_test)
-    return y_test,y_pred
+    
+    # Print feature importances
+    print("\nFeature importances:")
+    for name, importance in zip(X_train.columns, clf.feature_importances_):
+        print(f"{name}: {importance:.4f}")
+    
+    # Predict
+    y_pred = clf.predict(X_test_scaled)
+    
+    # Save the scaler along with the model
+    return y_test, y_pred, clf, scaler
 
 
 # In[64]:
 
-print "reading datasets.....\n"
+print("reading datasets.....\n")
 x,y=read_datasets()
 x.describe()
 
 
 # In[65]:
 
-print "extracting featues.....\n"
-x=extract_features(x)
-print x.columns
-print x.describe()
+print("extracting featues.....\n")
+x, lang_dict = extract_features(x)
+print(x.columns)
+print(x.describe())
 
 
 # In[66]:
 
-print "spliting datasets in train and test dataset...\n"
+print("spliting datasets in train and test dataset...\n")
 X_train,X_test,y_train,y_test = train_test_split(x, y, test_size=0.20, random_state=44)
 
 
 # In[67]:
 
-print "training datasets.......\n"
-y_test,y_pred = train(X_train,y_train,X_test)
+print("training datasets.......\n")
+y_test, y_pred, clf, scaler = train(X_train, y_train, X_test)
 
 
 # In[68]:
 
-print 'Classification Accuracy on Test dataset: ' ,accuracy_score(y_test, y_pred)
+print('Classification Accuracy on Test dataset: ' ,accuracy_score(y_test, y_pred))
 
 
 # In[70]:
@@ -228,4 +281,39 @@ print(classification_report(y_test, y_pred, target_names=['Fake','Genuine']))
 # In[73]:
 
 plot_roc_curve(y_test, y_pred)
+
+# Save the model and preprocessing data
+import joblib
+import os
+
+# Create directory if it doesn't exist
+os.makedirs('saved_model', exist_ok=True)
+
+# Ensure all required components exist
+if not hasattr(clf, 'feature_importances_'):
+    raise ValueError("Model is not properly trained!")
+
+if scaler is None:
+    from sklearn.preprocessing import StandardScaler
+    scaler = StandardScaler()
+    scaler.fit(X_train)  # Fit on training data
+
+# Save the model, scaler, and preprocessing data
+model_data = {
+    'model': clf,
+    'scaler': scaler,
+    'feature_columns': ['statuses_count', 'followers_count', 'friends_count', 
+                       'sex_code', 'lang_code'],
+    'lang_dict': global_lang_dict,
+    'model_info': 'Random Forest Classifier with StandardScaler'
+}
+
+print("\nModel components to be saved:")
+print(f"- Model type: {type(clf).__name__}")
+print(f"- Scaler type: {type(scaler).__name__ if scaler else 'None'}")
+print(f"- Feature columns: {model_data['feature_columns']}")
+
+joblib.dump(model_data, 'saved_model/random_forest_model.pkl')
+print("\nModel saved to 'saved_model/random_forest_model.pkl'")
+print("You can now use 'check_profile.py' to check individual profiles.")
 
