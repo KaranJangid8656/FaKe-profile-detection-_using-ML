@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
+from flask import Flask, render_template, request, jsonify, flash, redirect, url_for, send_from_directory
 import pandas as pd
 import joblib
 import os
@@ -6,6 +6,9 @@ import sys
 import logging
 from pathlib import Path
 from whitelist import is_whitelisted
+from instagram_analyzer import InstagramAnalyzer
+import json
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(
@@ -70,12 +73,8 @@ def predict_gender(name):
 
 @app.route('/')
 def home():
-    """Render the main page with the prediction form"""
-    try:
-        return render_template('index.html')
-    except Exception as e:
-        logger.error(f"Error rendering home page: {str(e)}")
-        return "An error occurred while loading the page. Please check the logs for details.", 500
+    """Redirect to the Instagram analyzer page"""
+    return redirect(url_for('instagram_analyzer'))
 
 # Whitelist is now managed in whitelist.py
 def validate_input_data(data):
@@ -251,6 +250,62 @@ def init_app():
     os.makedirs('saved_model', exist_ok=True)
     if not load_model():
         logger.warning("Failed to load model on startup. Will try lazy loading.")
+
+@app.route('/instagram')
+def instagram_analyzer():
+    """Render the Instagram analyzer page."""
+    return render_template('instagram.html')
+
+@app.route('/api/analyze/instagram', methods=['POST'])
+def analyze_instagram():
+    """API endpoint to analyze an Instagram profile."""
+    try:
+        data = request.get_json()
+        username = data.get('username', '').strip('@ ')
+        
+        if not username:
+            return jsonify({'error': 'Username is required'}), 400
+            
+        # Initialize the analyzer
+        analyzer = InstagramAnalyzer()
+        
+        # Get the profile data
+        profile = analyzer.get_profile(username)
+        
+        if not profile:
+            return jsonify({'error': 'Failed to fetch profile'}), 404
+            
+        # Analyze the profile
+        analyzer.analyze_profile(username)
+        
+        # Prepare the response
+        response = {
+            'success': True,
+            'profile': {
+                'username': profile.get('username', ''),
+                'full_name': profile.get('full_name', ''),
+                'biography': profile.get('biography', ''),
+                'external_url': profile.get('external_url', ''),
+                'followers': profile.get('followers', 0),
+                'following': profile.get('following', 0),
+                'posts': profile.get('posts', 0),
+                'is_private': profile.get('is_private', False),
+                'is_verified': profile.get('is_verified', False),
+                'profile_pic_url': profile.get('profile_pic_url', '')
+            },
+            'analysis': {
+                'is_fake': profile.get('is_fake', False),
+                'confidence': profile.get('confidence', 0),
+                'reasons': profile.get('reasons', [])
+            },
+            'timestamp': datetime.utcnow().isoformat()
+        }
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        logger.error(f"Error analyzing Instagram profile: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     init_app()

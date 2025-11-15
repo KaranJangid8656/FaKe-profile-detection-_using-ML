@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Profile Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);
+        }
+        .result-card {
+            transition: all 0.3s ease;
+        }
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <i class="fab fa-instagram text-3xl mr-3"></i>
+                    <h1 class="text-2xl font-bold">Instagram Profile Analyzer</h1>
+                </div>
+                <div class="text-sm">
+                    <span class="hidden md:inline">Detect fake profiles with AI-powered analysis</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Search Section -->
+        <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden mb-8">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Analyze Instagram Profile</h2>
+                <p class="text-gray-600 mb-6">Enter an Instagram username to check the authenticity of the profile</p>
+                
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex-grow relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-at text-gray-400"></i>
+                        </div>
+                        <input type="text" id="usernameInput" 
+                               class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                               placeholder="Enter Instagram username" autocomplete="off">
+                    </div>
+                    <button id="analyzeBtn" 
+                            class="px-6 py-3 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 transition-colors">
+                        <i class="fas fa-search mr-2"></i> Analyze
+                    </button>
+                </div>
+                <p id="errorText" class="mt-2 text-sm text-red-600 hidden"></p>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="hidden max-w-2xl mx-auto text-center py-12">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-pink-500 mx-auto mb-4"></div>
+            <p class="text-gray-700">Analyzing profile...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="hidden max-w-4xl mx-auto">
+            <!-- Profile Header -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+                <div class="p-6">
+                    <div class="flex flex-col md:flex-row items-center">
+                        <div class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gray-200 overflow-hidden mb-4 md:mb-0 md:mr-6">
+                            <img id="profilePic" src="" alt="Profile" class="w-full h-full object-cover" onerror="this.src='https://www.instagram.com/static/images/web/logged_out_wordmark.png/7a252de00b20.png';">
+                        </div>
+                        <div class="text-center md:text-left">
+                            <div class="flex items-center justify-center md:justify-start">
+                                <h2 id="profileName" class="text-2xl font-bold text-gray-900 mr-2"></h2>
+                                <span id="verifiedBadge" class="text-blue-500 hidden">
+                                    <i class="fas fa-check-circle"></i>
+                                </span>
+                                <span id="privateBadge" class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full hidden">
+                                    <i class="fas fa-lock mr-1"></i> Private
+                                </span>
+                            </div>
+                            <p id="profileUsername" class="text-gray-600 text-lg"></p>
+                            <p id="profileBio" class="mt-2 text-gray-700"></p>
+                            <p id="profileWebsite" class="mt-1">
+                                <a id="websiteLink" href="#" class="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer"></a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="border-t border-gray-200">
+                    <div class="grid grid-cols-3 divide-x divide-gray-200 text-center">
+                        <div class="p-4">
+                            <p class="text-2xl font-bold text-gray-900" id="postsCount">0</p>
+                            <p class="text-sm text-gray-500">Posts</p>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-2xl font-bold text-gray-900" id="followersCount">0</p>
+                            <p class="text-sm text-gray-500">Followers</p>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-2xl font-bold text-gray-900" id="followingCount">0</p>
+                            <p class="text-sm text-gray-500">Following</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Results -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Analysis Results</h3>
+                    
+                    <div id="resultCard" class="result-card p-6 rounded-lg border-2 border-gray-100">
+                        <div class="flex items-center">
+                            <div id="resultIcon" class="mr-4 text-4xl">
+                                <i class="fas fa-question-circle text-gray-400"></i>
+                            </div>
+                            <div>
+                                <h4 id="resultTitle" class="text-lg font-semibold">Analyzing Profile</h4>
+                                <p id="resultText" class="text-gray-600">Checking profile authenticity...</p>
+                            </div>
+                        </div>
+                        <div id="confidenceMeter" class="mt-4 hidden">
+                            <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                <span>Low Confidence</span>
+                                <span id="confidenceValue" class="font-medium">0%</span>
+                                <span>High Confidence</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div id="confidenceBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Indicators -->
+                    <div id="keyIndicators" class="mt-6 hidden">
+                        <h5 class="font-medium text-gray-900 mb-3">Key Indicators</h5>
+                        <div id="indicatorsList" class="space-y-3">
+                            <!-- Indicators will be added here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div id="recentActivity" class="bg-white rounded-xl shadow-md overflow-hidden mb-6 hidden">
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Recent Activity</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4" id="recentPostsGrid">
+                        <!-- Recent posts will be added here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Searches -->
+        <div id="recentSearches" class="max-w-4xl mx-auto mt-12">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Recently Analyzed Profiles</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="recentProfilesGrid">
+                <!-- Recent profiles will be added here by JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="text-sm text-gray-600 mb-4 md:mb-0">
+                    © 2023 Instagram Profile Analyzer. Not affiliated with Instagram.
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-500 hover:text-pink-600">
+                        <i class="fab fa-github text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-pink-600">
+                        <i class="fab fa-twitter text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-pink-600">
+                        <i class="fab fa-instagram text-xl"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const usernameInput = document.getElementById('usernameInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loadingState = document.getElementById('loadingState');
+        const resultsSection = document.getElementById('resultsSection');
+        const errorText = document.getElementById('errorText');
+        
+        // Profile elements
+        const profilePic = document.getElementById('profilePic');
+        const profileName = document.getElementById('profileName');
+        const profileUsername = document.getElementById('profileUsername');
+        const profileBio = document.getElementById('profileBio');
+        const websiteLink = document.getElementById('websiteLink');
+        const verifiedBadge = document.getElementById('verifiedBadge');
+        const privateBadge = document.getElementById('privateBadge');
+        const postsCount = document.getElementById('postsCount');
+        const followersCount = document.getElementById('followersCount');
+        const followingCount = document.getElementById('followingCount');
+        
+        // Result elements
+        const resultCard = document.getElementById('resultCard');
+        const resultIcon = document.getElementById('resultIcon');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultText = document.getElementById('resultText');
+        const confidenceMeter = document.getElementById('confidenceMeter');
+        const confidenceValue = document.getElementById('confidenceValue');
+        const confidenceBar = document.getElementById('confidenceBar');
+        const keyIndicators = document.getElementById('keyIndicators');
+        const indicatorsList = document.getElementById('indicatorsList');
+        const recentActivity = document.getElementById('recentActivity');
+        const recentPostsGrid = document.getElementById('recentPostsGrid');
+        const recentProfilesGrid = document.getElementById('recentProfilesGrid');
+
+        // Sample data for demonstration
+        const sampleProfiles = [
+            { username: 'cristiano', name: 'Cristiano Ronaldo', isVerified: true },
+            { username: 'instagram', name: 'Instagram', isVerified: true },
+            { username: 'leomessi', name: 'Leo Messi', isVerified: true },
+            { username: 'therock', name: 'Dwayne Johnson', isVerified: true }
+        ];
+
+        // Recent searches from localStorage
+        let recentSearches = JSON.parse(localStorage.getItem('recentSearches')) || [];
+
+        // Initialize the page
+        function init() {
+            // Add event listeners
+            analyzeBtn.addEventListener('click', analyzeProfile);
+            usernameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') analyzeProfile();
+            });
+
+            // Load recent searches
+            renderRecentSearches();
+        }
+
+        // Analyze profile function
+        async function analyzeProfile() {
+            const username = usernameInput.value.trim();
+            
+            // Validate input
+            if (!username) {
+                showError('Please enter an Instagram username');
+                return;
+            }
+
+            // Clear previous results and errors
+            clearResults();
+            hideError();
+            
+            // Show loading state
+            loadingState.classList.remove('hidden');
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Analyzing...';
+            
+            try {
+                // In a real app, you would make an API call to your backend
+                // const response = await fetch(`/api/analyze?username=${encodeURIComponent(username)}`);
+                // const data = await response.json();
+                
+                // For demo purposes, we'll use a timeout to simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Mock data - replace with actual API response
+                const mockData = {
+                    success: true,
+                    profile: {
+                        username: username.toLowerCase(),
+                        fullName: username === 'cristiano' ? 'Cristiano Ronaldo' : 
+                                 username === 'instagram' ? 'Instagram' : 
+                                 username.charAt(0).toUpperCase() + username.slice(1),
+                        isPrivate: Math.random() > 0.7,
+                        isVerified: Math.random() > 0.7,
+                        bio: username === 'cristiano' ? 'SIUUUbscribe to my Youtube Channel!' : 
+                             username === 'instagram' ? 'Discover what\'s new on Instagram 🔎✨' :
+                             'Digital creator | Photography enthusiast | Travel lover',
+                        website: username === 'cristiano' ? 'https://youtube.com/@cristiano' : 
+                                username === 'instagram' ? 'http://help.instagram.com/' : '',
+                        postsCount: Math.floor(Math.random() * 5000),
+                        followersCount: username === 'cristiano' ? 667980652 : 
+                                      username === 'instagram' ? 697008647 : 
+                                      Math.floor(Math.random() * 1000000),
+                        followingCount: username === 'cristiano' ? 614 : 
+                                      username === 'instagram' ? 281 : 
+                                      Math.floor(Math.random() * 5000),
+                        profilePic: `https://source.unsplash.com/random/300x300/?${username},profile`,
+                        engagementRate: (Math.random() * 5 + 0.1).toFixed(2),
+                        avgLikes: Math.floor(Math.random() * 1000000),
+                        avgComments: Math.floor(Math.random() * 10000),
+                        recentHashtags: ['#instagood', '#photooftheday', '#love', '#fashion', '#beautiful']
+                    },
+                    analysis: {
+                        isFake: Math.random() > 0.5,
+                        confidence: Math.floor(Math.random() * 40) + 60, // 60-100%
+                        indicators: [
+                            {
+                                text: 'High follower to following ratio',
+                                isPositive: true
+                            },
+                            {
+                                text: 'Consistent posting history',
+                                isPositive: true
+                            },
+                            {
+                                text: 'Profile picture is present',
+                                isPositive: true
+                            },
+                            {
+                                text: 'Bio is well-detailed',
+                                isPositive: true
+                            },
+                            {
+                                text: 'Engagement rate is within normal range',
+                                isPositive: true
+                            }
+                        ]
+                    },
+                    recentPosts: Array(6).fill().map((_, i) => ({
+                        id: i,
+                        image: `https://source.unsplash.com/random/300x300/?${username},post${i}`,
+                        likes: Math.floor(Math.random() * 10000),
+                        comments: Math.floor(Math.random() * 100)
+                    }))
+                };
+                
+                // Display results
+                displayResults(mockData);
+                
+                // Add to recent searches
+                addToRecentSearches({
+                    username: mockData.profile.username,
+                    name: mockData.profile.fullName,
+                    isVerified: mockData.profile.isVerified,
+                    profilePic: mockData.profile.profilePic,
+                    timestamp: new Date().toISOString()
+                });
+                
+            } catch (error) {
+                console.error('Error analyzing profile:', error);
+                showError('Failed to analyze profile. Please try again.');
+            } finally {
+                // Hide loading state
+                loadingState.classList.add('hidden');
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = '<i class="fas fa-search mr-2"></i> Analyze';
+            }
+        }
+
+        // Display results
+        function displayResults(data) {
+            if (!data.success) {
+                showError('Failed to analyze profile. Please try again.');
+                return;
+            }
+
+            const { profile, analysis, recentPosts } = data;
+            
+            // Update profile info
+            profilePic.src = profile.profilePic;
+            profileName.textContent = profile.fullName;
+            profileUsername.textContent = `@${profile.username}`;
+            profileBio.textContent = profile.bio || 'No bio available';
+            
+            // Website link
+            if (profile.website) {
+                websiteLink.textContent = profile.website;
+                websiteLink.href = profile.website;
+                websiteLink.parentElement.classList.remove('hidden');
+            } else {
+                websiteLink.parentElement.classList.add('hidden');
+            }
+            
+            // Badges
+            verifiedBadge.classList.toggle('hidden', !profile.isVerified);
+            privateBadge.classList.toggle('hidden', !profile.isPrivate);
+            
+            // Stats
+            postsCount.textContent = profile.postsCount.toLocaleString();
+            followersCount.textContent = profile.followersCount.toLocaleString();
+            followingCount.textContent = profile.followingCount.toLocaleString();
+            
+            // Analysis result
+            if (analysis.isFake) {
+                resultCard.classList.add('border-red-200', 'bg-red-50');
+                resultIcon.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500"></i>';
+                resultTitle.textContent = '⚠️ Suspicious Profile Detected';
+                resultText.textContent = 'This profile shows several signs of being fake or suspicious.';
+            } else {
+                resultCard.classList.add('border-green-200', 'bg-green-50');
+                resultIcon.innerHTML = '<i class="fas fa-check-circle text-green-500"></i>';
+                resultTitle.textContent = '✅ Likely Genuine Profile';
+                resultText.textContent = 'This profile appears to be authentic based on our analysis.';
+            }
+            
+            // Confidence meter
+            confidenceValue.textContent = `${analysis.confidence}%`;
+            confidenceBar.style.width = `${analysis.confidence}%`;
+            confidenceMeter.classList.remove('hidden');
+            
+            // Key indicators
+            indicatorsList.innerHTML = '';
+            analysis.indicators.forEach(indicator => {
+                const indicatorEl = document.createElement('div');
+                indicatorEl.className = 'flex items-start';
+                indicatorEl.innerHTML = `
+                    <span class="mr-2 mt-0.5 text-${indicator.isPositive ? 'green' : 'red'}-500">
+                        <i class="fas fa-${indicator.isPositive ? 'check' : 'times'}-circle"></i>
+                    </span>
+                    <span>${indicator.text}</span>
+                `;
+                indicatorsList.appendChild(indicatorEl);
+            });
+            keyIndicators.classList.remove('hidden');
+            
+            // Recent activity
+            if (recentPosts && recentPosts.length > 0) {
+                recentPostsGrid.innerHTML = '';
+                recentPosts.forEach(post => {
+                    const postEl = document.createElement('div');
+                    postEl.className = 'relative group cursor-pointer';
+                    postEl.innerHTML = `
+                        <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                            <img src="${post.image}" alt="Post" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <div class="text-white text-center">
+                                    <div class="flex items-center justify-center space-x-4 mb-1">
+                                        <span><i class="fas fa-heart mr-1"></i> ${post.likes.toLocaleString()}</span>
+                                        <span><i class="fas fa-comment mr-1"></i> ${post.comments.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    recentPostsGrid.appendChild(postEl);
+                });
+                recentActivity.classList.remove('hidden');
+            } else {
+                recentActivity.classList.add('hidden');
+            }
+            
+            // Show results section
+            resultsSection.classList.remove('hidden');
+            
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Add to recent searches
+        function addToRecentSearches(profile) {
+            // Remove if already exists
+            recentSearches = recentSearches.filter(p => p.username !== profile.username);
+            
+            // Add to beginning
+            recentSearches.unshift(profile);
+            
+            // Keep only last 8
+            if (recentSearches.length > 8) {
+                recentSearches = recentSearches.slice(0, 8);
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+            
+            // Update UI
+            renderRecentSearches();
+        }
+
+        // Render recent searches
+        function renderRecentSearches() {
+            if (recentSearches.length === 0) {
+                recentProfilesGrid.innerHTML = `
+                    <div class="col-span-full text-center py-4 text-gray-500">
+                        No recent searches yet. Search for a profile to begin.
+                    </div>
+                `;
+                return;
+            }
+            
+            recentProfilesGrid.innerHTML = recentSearches.map(profile => `
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow cursor-pointer" 
+                     onclick="document.getElementById('usernameInput').value='${profile.username}'; analyzeProfile();">
+                    <div class="aspect-square bg-gray-100 overflow-hidden">
+                        <img src="${profile.profilePic}" alt="${profile.name}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-3">
+                        <div class="flex items-center">
+                            <span class="font-medium text-gray-900 truncate">${profile.name}</span>
+                            ${profile.isVerified ? '<i class="fas fa-check-circle text-blue-500 ml-1"></i>' : ''}
+                        </div>
+                        <div class="text-sm text-gray-500">@${profile.username}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Clear results
+        function clearResults() {
+            resultsSection.classList.add('hidden');
+            resultCard.className = 'result-card p-6 rounded-lg border-2 border-gray-100';
+            confidenceMeter.classList.add('hidden');
+            keyIndicators.classList.add('hidden');
+            recentActivity.classList.add('hidden');
+        }
+
+        // Show error
+        function showError(message) {
+            errorText.textContent = message;
+            errorText.classList.remove('hidden');
+        }
+
+        // Hide error
+        function hideError() {
+            errorText.classList.add('hidden');
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
