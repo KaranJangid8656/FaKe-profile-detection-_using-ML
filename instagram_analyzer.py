@@ -242,6 +242,7 @@ class InstagramAnalyzer:
                     'posts': total_posts,
                     'is_private': is_private,
                     'is_verified': is_verified,
+                    'profile_pic_url': profile.profile_pic_url if profile.profile_pic_url else None,
                     'has_profile_pic': 1 if profile.profile_pic_url else 0,
                     'has_default_profile_pic': 0,  # Hard to determine without more info
                     'has_highlight_reels': 0,  # Not available in current API

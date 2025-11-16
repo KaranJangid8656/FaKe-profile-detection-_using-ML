@@ -251,6 +251,42 @@ def init_app():
     if not load_model():
         logger.warning("Failed to load model on startup. Will try lazy loading.")
 
+@app.route('/proxy-image/<path:image_url>')
+def proxy_image(image_url):
+    """Proxy Instagram images to avoid CORS issues."""
+    import requests
+    from flask import Response
+    
+    try:
+        # Decode the URL
+        from urllib.parse import unquote
+        image_url = unquote(image_url)
+        
+        # Fetch the image
+        response = requests.get(image_url, timeout=10)
+        
+        if response.status_code == 200:
+            # Return the image with appropriate headers
+            return Response(response.content, 
+                          mimetype=response.headers.get('Content-Type', 'image/jpeg'),
+                          headers={
+                              'Cache-Control': 'public, max-age=3600',
+                              'Access-Control-Allow-Origin': '*'
+                          })
+        else:
+            # Return placeholder if image fetch fails
+            placeholder_url = 'https://via.placeholder.com/150'
+            placeholder_response = requests.get(placeholder_url)
+            return Response(placeholder_response.content, 
+                          mimetype='image/jpeg')
+    except Exception as e:
+        logger.error(f"Error proxying image: {str(e)}")
+        # Return placeholder on error
+        placeholder_url = 'https://via.placeholder.com/150'
+        placeholder_response = requests.get(placeholder_url)
+        return Response(placeholder_response.content, 
+                      mimetype='image/jpeg')
+
 @app.route('/instagram')
 def instagram_analyzer():
     """Render the Instagram analyzer page."""
@@ -278,6 +314,30 @@ def analyze_instagram():
         # Analyze the profile
         analyzer.analyze_profile(username)
         
+        # Calculate confidence based on profile characteristics
+        is_fake = profile.get('is_fake', False)
+        confidence = 0
+        
+        # Base confidence
+        if not is_fake:
+            confidence = 85  # Base confidence for real profiles
+            # Increase confidence for verified accounts
+            if profile.get('is_verified', False):
+                confidence = 95
+            # Increase confidence for accounts with substantial followers
+            elif profile.get('followers', 0) > 10000:
+                confidence = 90
+            # Increase confidence for accounts with posts
+            elif profile.get('posts', 0) > 50:
+                confidence = 88
+        else:
+            confidence = 75  # Base confidence for fake profiles
+            # Increase confidence if obvious fake signs
+            if profile.get('followers', 0) == 0:
+                confidence = 85
+            elif profile.get('posts', 0) == 0:
+                confidence = 80
+        
         # Prepare the response
         response = {
             'success': True,
@@ -294,8 +354,8 @@ def analyze_instagram():
                 'profile_pic_url': profile.get('profile_pic_url', '')
             },
             'analysis': {
-                'is_fake': profile.get('is_fake', False),
-                'confidence': profile.get('confidence', 0),
+                'is_fake': is_fake,
+                'confidence': confidence / 100,  # Convert to decimal
                 'reasons': profile.get('reasons', [])
             },
             'timestamp': datetime.utcnow().isoformat()
