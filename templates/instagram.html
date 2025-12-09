@@ -432,6 +432,27 @@
     margin-right: 0.5rem;
 }
 
+.verified-badge-img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    vertical-align: middle;
+    display: inline-block;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.verified-badge-img-small {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+.verified-badge-img-tiny {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+}
+
 .analysis-results {
     padding: 1.5rem;
     background: #ffffff;
@@ -478,8 +499,8 @@
 }
 
 .social-platforms {
-    background: #f8f9fa;
-    border-top: 1px solid #e9ecef;
+    background: rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .platforms-grid {
@@ -546,6 +567,40 @@
     border-radius: 3px;
     z-index: 10;
     opacity: 0.8;
+}
+
+.download-section {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.download-btn {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.download-btn:hover {
+    background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+}
+
+.download-btn i {
+    font-size: 1.2rem;
 }
 
 .phone-shadow {
@@ -1111,32 +1166,123 @@
         }
 
         .footer {
-            background: #2d3436;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d3436 100%);
             color: white;
-            padding: 3rem 0 1rem;
+            padding: 4rem 0 2rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e74c3c, transparent);
         }
 
         .footer-content {
+            margin-bottom: 3rem;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-bottom: 2rem;
+        }
+
+        .footer-brand i {
+            font-size: 2.5rem;
+            margin-right: 15px;
+            color: #ffffff;
+        }
+
+        .footer-brand span {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #ffffff, #b2bec3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .footer-links {
             display: flex;
             justify-content: center;
-            gap: 2rem;
-            margin-bottom: 2rem;
+            gap: 3rem;
+            margin-bottom: 2.5rem;
             flex-wrap: wrap;
         }
 
         .footer-links a {
-            color: white;
+            color: #b2bec3;
             text-decoration: none;
-            transition: color 0.3s;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .footer-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #e74c3c, #ff6b6b);
+            transition: width 0.3s ease;
         }
 
         .footer-links a:hover {
-            color: #e74c3c;
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        .footer-links a:hover::after {
+            width: 100%;
+        }
+
+        .footer-social {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .social-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b2bec3;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .social-icon:hover {
+            background: linear-gradient(45deg, #e74c3c, #ff6b6b);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        .footer-bottom {
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #636e72;
+            font-size: 0.9rem;
+        }
+
+        .footer-bottom p {
+            margin: 0.5rem 0;
         }
 
         .mobile-menu {
@@ -1436,6 +1582,15 @@
         </div>
     </section>
 
+    <!-- Results Section -->
+    <section class="results-section" id="resultsSection">
+        <div class="container">
+            <div class="result-card" id="resultCard">
+                <!-- Results will be inserted here by JavaScript -->
+            </div>
+        </div>
+    </section>
+
     <!-- Features Section -->
     <section class="features-section">
         <div class="container">
@@ -1502,15 +1657,6 @@
         </div>
     </section>
 
-    <!-- Results Section -->
-    <section class="results-section" id="resultsSection">
-        <div class="container">
-            <div class="result-card" id="resultCard">
-                <!-- Results will be inserted here by JavaScript -->
-            </div>
-        </div>
-    </section>
-
     <!-- Features Section -->
     <section class="features-section" id="features">
         <div class="container">
@@ -1549,17 +1695,38 @@
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                    <i class="fab fa-instagram" style="font-size: 2rem; margin-right: 10px;"></i>
-                    <span style="font-size: 1.5rem; font-weight: 700;">ShadowSniper</span>
+                <div class="footer-brand">
+                    <i class="fab fa-instagram"></i>
+                    <span>ShadowSniper</span>
                 </div>
+                
                 <div class="footer-links">
                     <a href="#privacy">Privacy Policy</a>
                     <a href="#terms">Terms of Service</a>
                     <a href="#contact">Contact Us</a>
                     <a href="#faq">FAQ</a>
                 </div>
-                <p style="color: #b2bec3;">© 2023 ShadowSniper. Not affiliated with Instagram, Inc.</p>
+
+                <div class="footer-social">
+                    <a href="#" class="social-icon" title="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="social-icon" title="Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="social-icon" title="LinkedIn">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    <a href="#" class="social-icon" title="GitHub">
+                        <i class="fab fa-github"></i>
+                    </a>
+                </div>
+
+                <div class="footer-bottom">
+                    <p>© 2024 ShadowSniper. All rights reserved.</p>
+                    <p>Not affiliated with Instagram, Inc.</p>
+                    <p>Built with ❤️ for digital safety</p>
+                </div>
             </div>
         </div>
     </footer>
@@ -1645,31 +1812,139 @@
         }
 
         function getInstagramImageUrl(url) {
-            if (!url) return 'https://via.placeholder.com/150';
+            if (!url || url.trim() === '') {
+                return 'https://via.placeholder.com/150/cccccc/666666?text=No+Image';
+            }
             
-            // Use our proxy endpoint to avoid CORS issues
-            return '/proxy-image/' + encodeURIComponent(url);
+            // Clean the URL
+            url = url.trim();
+            
+            // If URL is already a placeholder, return it directly
+            if (url.includes('placeholder.com') || url.includes('via.placeholder')) {
+                return url;
+            }
+            
+            // Try direct URL first (might work in some browsers)
+            // If it fails, the onerror handler will use the proxy
+            return url;
+        }
+        
+        function getProxyImageUrl(url) {
+            if (!url || url.trim() === '') {
+                return 'https://via.placeholder.com/150/cccccc/666666?text=No+Image';
+            }
+            
+            // Use our proxy endpoint with query parameter to avoid CORS issues
+            try {
+                return '/proxy-image?url=' + encodeURIComponent(url.trim());
+            } catch (e) {
+                console.error('Error encoding image URL:', e);
+                return 'https://via.placeholder.com/150/cccccc/666666?text=Error';
+            }
         }
 
         // Store the analysis data globally for report generation
         let currentAnalysisData = null;
 
+        // Function to format numbers like Instagram (K, M, B)
+        function formatNumber(num) {
+            if (num >= 1000000000) {
+                return (num / 1000000000).toFixed(1) + 'B';
+            } else if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+
+        // Global function to handle image errors
+        window.handleImageError = function(img) {
+            console.error('❌ Image failed to load:', img.src);
+            const originalUrl = img.dataset.originalUrl;
+            const triedDirect = img.dataset.triedDirect === 'true';
+            
+            // Prevent infinite error loop
+            img.onerror = null;
+            
+            if (!triedDirect && originalUrl && img.src.includes('/proxy-image')) {
+                // Try direct URL if proxy failed
+                console.log('🔄 Proxy failed, trying direct URL as fallback...');
+                img.src = originalUrl;
+                img.dataset.triedDirect = 'true';
+                // Set up error handler again for direct URL attempt
+                img.onerror = function() {
+                    console.error('❌ Direct URL also failed, showing placeholder icon');
+                    replaceWithPlaceholderIcon(img);
+                };
+            } else {
+                // Use placeholder icon as final fallback
+                console.log('⚠️ Using placeholder icon');
+                replaceWithPlaceholderIcon(img);
+            }
+        };
+        
+        function replaceWithPlaceholderIcon(imgElement) {
+            // Replace img with placeholder div
+            const placeholder = document.createElement('div');
+            placeholder.className = 'profile-pic';
+            placeholder.style.cssText = 'width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; border: 4px solid #e1e8ed; flex-shrink: 0;';
+            placeholder.innerHTML = '<i class="fas fa-user"></i>';
+            imgElement.parentNode.replaceChild(placeholder, imgElement);
+        }
+
         function displayResults(data) {
             console.log('Profile data received:', data.profile);
             currentAnalysisData = data; // Store data for report generation
             const isReal = !data.analysis.is_fake;
-            const confidence = Math.round(data.analysis.confidence * 100);
+            const confidence = Math.round(data.analysis.confidence);
             const profile = data.profile;
             
-            const profileImageUrl = getInstagramImageUrl(profile.profile_pic_url);
-            console.log('Profile image URL:', profileImageUrl);
+            const originalImageUrl = (profile.profile_pic_url || '').trim();
+            const hasProfilePic = profile.has_profile_pic || false;
+            
+            console.log('=== IMAGE DEBUG INFO ===');
+            console.log('Has profile pic flag:', hasProfilePic);
+            console.log('Original image URL:', originalImageUrl);
+            console.log('URL length:', originalImageUrl.length);
+            console.log('URL is empty?', !originalImageUrl || originalImageUrl === '');
+            console.log('URL starts with http?', originalImageUrl.startsWith('http'));
+            
+            // Determine which image URL to use
+            let profileImageUrl;
+            let showImage = false;
+            
+            if (originalImageUrl && originalImageUrl.startsWith('http')) {
+                // Use proxy for Instagram CDN URLs
+                profileImageUrl = getProxyImageUrl(originalImageUrl);
+                showImage = true;
+                console.log('Using proxy URL:', profileImageUrl);
+            } else {
+                // No valid URL - use placeholder icon
+                profileImageUrl = '';
+                showImage = false;
+                console.log('No valid image URL, using icon placeholder');
+            }
+            console.log('Show image?', showImage);
+            console.log('=======================');
             
             const resultsHTML = `
                 <div class="profile-header">
+                    ${showImage ? `
                     <img src="${profileImageUrl}" 
-                         alt="Profile" 
+                         alt="Profile Picture" 
                          class="profile-pic"
-                         onerror="console.log('Image failed to load:', this.src); this.src='https://via.placeholder.com/150'; console.log('Fallback image loaded')">
+                         data-original-url="${originalImageUrl}"
+                         data-tried-direct="false"
+                         loading="lazy"
+                         onerror="console.error('Image load error:', this.src); handleImageError(this)"
+                         onload="console.log('✅ Profile image loaded successfully from:', this.src)"
+                         style="display: block; max-width: 100%; height: auto; border-radius: 50%; object-fit: cover;">
+                    ` : `
+                    <div class="profile-pic" style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; border: 4px solid #e1e8ed; flex-shrink: 0;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    `}
                     <div class="profile-info">
                         <h3>@${profile.username}</h3>
                         <p>${profile.biography || 'No bio available'}</p>
@@ -1691,48 +1966,53 @@
                     
                     <div class="info-card">
                         <div class="info-label">Posts</div>
-                        <div class="info-value">${profile.posts || 0}</div>
+                        <div class="info-value">${formatNumber(profile.total_posts || 0)}</div>
                     </div>
                     
                     <div class="info-card">
                         <div class="info-label">Followers</div>
-                        <div class="info-value">${profile.followers ? formatNumber(profile.followers) : '0'}</div>
+                        <div class="info-value">${formatNumber(profile.followers || 0)}</div>
                     </div>
                     
                     <div class="info-card">
                         <div class="info-label">Following</div>
-                        <div class="info-value">${profile.following ? formatNumber(profile.following) : '0'}</div>
+                        <div class="info-value">${formatNumber(profile.following || 0)}</div>
                     </div>
                     
                     <div class="info-card">
                         <div class="info-label">Verified</div>
-                        <div class="info-value">${profile.is_verified ? 'Yes' : 'No'}</div>
+                        <div class="info-value" style="display: flex; align-items: center; justify-content: center; gap: 0.4rem; flex-wrap: wrap;">
+                            ${profile.is_verified ? `
+                                <img src="https://res.cloudinary.com/dx9bvma03/image/upload/v1765216617/Instagram-Verified-Badge-PNG-Transparent-Image_a1zzm5.png" 
+                                     alt="Verified" 
+                                     class="verified-badge-img-small"
+                                     style="display: inline-block;"
+                                     onerror="console.error('Failed to load verified badge image'); this.style.display='none';">
+                                <span>Yes</span>
+                            ` : '<span>No</span>'}
+                        </div>
                     </div>
                 </div>
 
-                ${data.analysis.reasons.length > 0 ? `
-                    <div class="reasons-card">
-                        <h4>Analysis Reasons:</h4>
-                        <ul>
-                            ${data.analysis.reasons.map(reason => `<li>${reason}</li>`).join('')}
-                        </ul>
+                <div class="analysis-results">
+                    <div class="result-item">
+                        <span class="label">Confidence</span>
+                        <span class="value">${confidence}%</span>
                     </div>
-                ` : ''}
+                    <div class="result-item">
+                        <span class="label">Risk Level</span>
+                        <span class="value ${isReal ? 'low' : 'high'}">${isReal ? 'Low' : 'High'}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Status</span>
+                        <span class="value ${isReal ? 'authentic' : 'fake'}">${isReal ? 'Authentic' : 'Fake'}</span>
+                    </div>
+                </div>
 
-                <div class="report-section">
-                    <button onclick="generateReport()" class="report-btn">
+                <div class="download-section">
+                    <button class="download-btn" onclick="downloadFullReport()">
                         <i class="fas fa-download"></i>
                         Download Full Report
-                    </button>
-                    <div id="reportContent" style="display: none;">
-                        <!-- Report content will be generated here -->
-                    </div>
-                </div>
-
-                <div style="text-align: center; margin-top: 2rem;">
-                    <button onclick="resetAnalysis()" class="analyze-btn" style="max-width: 300px;">
-                        <i class="fas fa-redo"></i>
-                        Analyze Another Profile
                     </button>
                 </div>
             `;
@@ -1741,8 +2021,25 @@
             resultsSection.style.display = 'block';
             hideLoading();
             
-            // Scroll to results
-            resultsSection.scrollIntoView({ behavior: 'smooth' });
+            // Scroll to results with a slight delay and smaller offset
+            setTimeout(() => {
+                const resultsSection = document.getElementById('resultsSection');
+                const sectionTop = resultsSection.offsetTop;
+                const offset = 80; // Reduced offset to 80px for better positioning
+                window.scrollTo({
+                    top: sectionTop - offset,
+                    behavior: 'smooth'
+                });
+                
+                // Initialize charts after scrolling - no longer needed for CSS charts
+                setTimeout(() => {
+                    console.log('Charts are now rendered with CSS');
+                }, 1000);
+            }, 600);
+        }
+
+            function downloadFullReport() {
+            generateReport();
         }
 
         function generateReport() {
@@ -1754,7 +2051,7 @@
             const data = currentAnalysisData;
             const profile = data.profile;
             const isReal = !data.analysis.is_fake;
-            const confidence = Math.round(data.analysis.confidence * 100);
+            const confidence = Math.round(data.analysis.confidence);
             const reportDate = new Date().toLocaleString();
 
             // Generate comprehensive report content
@@ -1783,7 +2080,7 @@ Privacy Status: ${profile.is_private ? 'Private' : 'Public'}
 
 QUANTITATIVE METRICS
 --------------------
-Posts: ${profile.posts || 0}
+Posts: ${profile.total_posts || 0}
 Followers: ${profile.followers || 0}
 Following: ${profile.following || 0}
 Followers/Following Ratio: ${profile.following > 0 ? (profile.followers / profile.following).toFixed(2) : 'N/A'}
@@ -1793,22 +2090,226 @@ ANALYSIS RESULTS
 Confidence Score: ${confidence}%
 Analysis Result: ${isReal ? 'Authentic Profile' : 'Potentially Fake Profile'}
 
-TECHNICAL PARAMETERS
--------------------
+TECHNICAL ANALYSIS PARAMETERS
+------------------------------
+1. FOLLOWER/FOLLOWING RATIO ANALYSIS
+   Ratio: ${profile.following > 0 ? (profile.followers / profile.following).toFixed(2) : 'N/A'}
+   Risk Level: ${profile.following > 0 && (profile.followers / profile.following) > 20 ? 'EXTREME (Ratio > 20)' : 
+                profile.following > 0 && (profile.followers / profile.following) > 10 ? 'VERY HIGH (Ratio > 10)' :
+                profile.following > 0 && (profile.followers / profile.following) > 5 ? 'HIGH (Ratio > 5)' :
+                profile.following > 0 && (profile.followers / profile.following) < 0.001 && profile.followers > 10000 ? 'EXCELLENT (Ratio < 0.001)' :
+                profile.following > 0 && (profile.followers / profile.following) < 0.01 && profile.followers > 1000 ? 'GOOD (Ratio < 0.01)' : 'NORMAL'}
+   Impact on Risk Score: ${profile.following > 0 && (profile.followers / profile.following) > 20 ? '+40 points' :
+                         profile.following > 0 && (profile.followers / profile.following) > 10 ? '+30 points' :
+                         profile.following > 0 && (profile.followers / profile.following) > 5 ? '+20 points' :
+                         profile.following > 0 && (profile.followers / profile.following) < 0.001 && profile.followers > 10000 ? '-15 points' :
+                         profile.following > 0 && (profile.followers / profile.following) < 0.01 && profile.followers > 1000 ? '-10 points' : '0 points'}
+
+2. ACCOUNT AGE ANALYSIS
+   Account Age: ${profile.account_age_days || 'Unknown'} days
+   Risk Level: ${profile.account_age_days < 7 ? 'VERY HIGH (New account < 7 days)' :
+                profile.account_age_days < 30 ? 'HIGH (New account < 30 days)' :
+                profile.account_age_days < 90 ? 'MEDIUM (Recent account < 90 days)' :
+                profile.account_age_days > 730 ? 'LOW (Well-established > 2 years)' :
+                profile.account_age_days > 365 ? 'LOW (Established > 1 year)' : 'NORMAL'}
+   Impact on Risk Score: ${profile.account_age_days < 7 ? '+35 points' :
+                         profile.account_age_days < 30 ? '+25 points' :
+                         profile.account_age_days < 90 ? '+15 points' :
+                         profile.account_age_days > 730 ? '-15 points' :
+                         profile.account_age_days > 365 ? '-10 points' : '0 points'}
+
+3. POSTING ACTIVITY ANALYSIS
+   Total Posts: ${profile.total_posts || 0}
+   Risk Level: ${profile.total_posts === 0 ? 'EXTREME (No posts)' :
+                profile.total_posts < 3 ? 'HIGH (Minimal posts < 3)' :
+                profile.total_posts < 10 ? 'MEDIUM (Few posts < 10)' :
+                profile.total_posts > 5000 ? 'HIGH (Suspiciously high > 5000)' :
+                profile.total_posts >= 100 && profile.total_posts < 1000 ? 'LOW (Reasonable 100-1000)' :
+                profile.total_posts >= 1000 && profile.total_posts < 5000 ? 'LOW (High but reasonable 1000-5000)' : 'NORMAL'}
+   Impact on Risk Score: ${profile.total_posts === 0 ? '+30 points' :
+                         profile.total_posts < 3 ? '+20 points' :
+                         profile.total_posts < 10 ? '+10 points' :
+                         profile.total_posts > 5000 ? '+15 points' :
+                         profile.total_posts >= 100 && profile.total_posts < 1000 ? '-10 points' :
+                         profile.total_posts >= 1000 && profile.total_posts < 5000 ? '-5 points' : '0 points'}
+
+4. VERIFICATION STATUS ANALYSIS
+   Verified: ${profile.is_verified ? 'YES' : 'NO'}
+   Risk Level: ${profile.is_verified ? 'LOW (Verified account)' : 'NORMAL'}
+   Impact on Confidence Score: ${profile.is_verified ? '+30 points' : '0 points'}
+
+5. PROFILE PICTURE ANALYSIS
+   Has Profile Picture: ${profile.has_profile_pic ? 'YES' : 'NO'}
+   Risk Level: ${profile.has_profile_pic ? 'NORMAL' : 'HIGH (No profile picture)'}
+   Impact on Risk Score: ${profile.has_profile_pic ? '0 points' : '+20 points'}
+
+6. FOLLOWER COUNT ANALYSIS
+   Followers: ${profile.followers || 0}
+   Risk Level: ${profile.followers === 0 ? 'HIGH (No followers)' :
+                profile.followers < 10 ? 'HIGH (Very few < 10)' :
+                profile.followers < 50 ? 'MEDIUM (Few < 50)' :
+                profile.followers >= 100 && profile.followers < 1000 ? 'LOW (Solid 100-1000)' :
+                profile.followers >= 1000 && profile.followers < 50000 ? 'LOW (Large 1000-50000)' :
+                profile.followers >= 50000000 ? 'LOW (Celebrity > 50M)' : 'NORMAL'}
+   Impact on Risk Score: ${profile.followers === 0 ? '+25 points' :
+                         profile.followers < 10 ? '+15 points' :
+                         profile.followers < 50 ? '+5 points' :
+                         profile.followers >= 100 && profile.followers < 1000 ? '-10 points' :
+                         profile.followers >= 1000 && profile.followers < 50000 ? '-10 points' :
+                         profile.followers >= 50000000 ? '-20 points' : '0 points'}
+
+7. BIO ANALYSIS
+   Bio Length: ${profile.biography ? profile.biography.length : 0} characters
+   Risk Level: ${!profile.biography || profile.biography.length === 0 ? 'MEDIUM (No bio)' :
+                profile.biography.length < 10 ? 'LOW (Minimal < 10)' :
+                profile.biography.length > 50 ? 'LOW (Detailed > 50)' : 'NORMAL'}
+   Impact on Risk Score: ${!profile.biography || profile.biography.length === 0 ? '+10 points' :
+                         profile.biography.length < 10 ? '+5 points' :
+                         profile.biography.length > 50 ? '-5 points' : '0 points'}
+
+8. COMBINATION ANALYSIS
+   New Account + Minimal Posts: ${profile.account_age_days < 30 && profile.total_posts < 5 ? 'HIGH RISK' : 'NORMAL'}
+   Bot Pattern (High Following + Low Followers + New Account): ${(profile.following > 1000 && profile.followers < 100 && profile.account_age_days < 90) ? 'HIGH RISK' : 'NORMAL'}
+   Strong Authenticity (Verified + Established + Active): ${(profile.is_verified && profile.account_age_days > 365 && profile.total_posts > 50) ? 'LOW RISK' : 'NORMAL'}
+
+ADVANCED MACHINE LEARNING PARAMETERS
+-----------------------------------
+1. USERNAME ANALYSIS
+   Contains Numbers: ${/[0-9]/.test(profile.username || '') ? 'YES' : 'NO'}
+   Special Characters: ${/[^a-zA-Z0-9_]/.test(profile.username || '') ? 'YES' : 'NO'}
+   Repeating Patterns: ${/([a-zA-Z])\1{2,}/.test(profile.username || '') ? 'YES' : 'NO'}
+   Username Length: ${(profile.username || '').length} characters
+
+2. ACTIVITY PATTERNS
+   Posts Per Day: ${profile.account_age_days > 0 ? ((profile.total_posts || 0) / profile.account_age_days).toFixed(2) : 'N/A'}
+   Followers Per Day: ${profile.account_age_days > 0 ? ((profile.followers || 0) / profile.account_age_days).toFixed(2) : 'N/A'}
+   Following Per Day: ${profile.account_age_days > 0 ? ((profile.following || 0) / profile.account_age_days).toFixed(2) : 'N/A'}
+
+3. PROFILE METRICS
+   Statuses Count: ${profile.total_posts || 0}
+   Followers Count: ${profile.followers || 0}
+   Friends Count: ${profile.following || 0}
+   Engagement Ratio: ${profile.following > 0 ? ((profile.followers / profile.following) * 100).toFixed(2) + '%' : 'N/A'}
+
+STATISTICAL VALIDATION METRICS
+-------------------------------
+Model Accuracy: ${confidence}%
+Risk Score: ${data.analysis.risk_score || 0}/100
+Confidence Classification: ${confidence >= 80 ? 'HIGH CONFIDENCE' : confidence >= 60 ? 'MEDIUM CONFIDENCE' : 'LOW CONFIDENCE'}
+Profile Classification: ${isReal ? 'AUTHENTIC' : 'SUSPICIOUS'}
+
 Profile Picture URL: ${profile.profile_pic_url || 'Not available'}
 External URL: ${profile.external_url || 'Not provided'}
 Account ID: Internal system ID
 
-ANALYSIS FACTORS
-----------------
-${data.analysis.reasons.length > 0 ? 
-    data.analysis.reasons.map((reason, index) => `${index + 1}. ${reason}`).join('\n') 
-    : 'No specific reasons provided'}
-
 RISK ASSESSMENT
----------------
-Risk Level: ${confidence >= 80 ? 'Low' : confidence >= 60 ? 'Medium' : 'High'}
+----------------
+Risk Level: ${confidence >= 80 ? 'LOW' : confidence >= 60 ? 'MEDIUM' : 'HIGH'}
 Recommendation: ${isReal ? 'Profile appears authentic' : 'Exercise caution with this profile'}
+
+COMPREHENSIVE PARAMETER ANALYSIS
+--------------------------------
+
+BASIC CLASSIFICATION PARAMETERS:
+1. FOLLOWER/FOLLOWING RATIO
+   - High Risk: Ratio > 20 (+40 risk points), > 10 (+30), > 5 (+20)
+   - Low Risk: Ratio < 0.001 with >10k followers (-15), < 0.01 with >1k followers (-10)
+   - Current Ratio: ${profile.following > 0 ? (profile.followers / profile.following).toFixed(2) : 'N/A'}
+
+2. ACCOUNT AGE
+   - High Risk: < 7 days (+35), < 30 days (+25), < 90 days (+15)
+   - Low Risk: > 2 years (-15), > 1 year (-10)
+   - Current Age: ${profile.account_age_days || 'Unknown'} days
+
+3. POSTING ACTIVITY
+   - High Risk: 0 posts (+30), < 3 posts (+20), < 10 posts (+10), > 5000 posts (+15)
+   - Low Risk: 100-1000 posts (-10), 1000-5000 posts (-5)
+   - Current Posts: ${profile.total_posts || 0}
+
+4. VERIFICATION STATUS
+   - Low Risk: Verified account (+30 confidence points)
+   - Current Status: ${profile.is_verified ? 'VERIFIED' : 'NOT VERIFIED'}
+
+5. PROFILE PICTURE
+   - High Risk: No profile picture (+20 risk points)
+   - Current Status: ${profile.has_profile_pic ? 'HAS PROFILE PICTURE' : 'NO PROFILE PICTURE'}
+
+6. FOLLOWER COUNT RANGES
+   - High Risk: 0 followers (+25), < 10 followers (+15), < 50 followers (+5)
+   - Low Risk: 100-1000 followers (-10), 1000-50000 followers (-10), > 50M followers (-20)
+   - Current Followers: ${profile.followers || 0}
+
+7. BIO ANALYSIS
+   - High Risk: No bio (+10), < 10 characters (+5)
+   - Low Risk: > 50 characters (-5)
+   - Current Bio Length: ${profile.biography ? profile.biography.length : 0} characters
+
+8. COMBINATION ANALYSIS
+   - High Risk: New account (<30 days) + minimal posts (<5) (+20)
+   - High Risk: High following (>1000) + low followers (<100) + new account (<90 days) (+25)
+   - Low Risk: Verified + established (>365 days) + active (>50 posts) (+10)
+
+ADVANCED ML PARAMETERS:
+1. USERNAME PATTERN ANALYSIS
+   - Numbers in username: ${/[0-9]/.test(profile.username || '') ? 'YES - Suspicious' : 'NO - Normal'}
+   - Special characters: ${/[^a-zA-Z0-9_]/.test(profile.username || '') ? 'YES - Suspicious' : 'NO - Normal'}
+   - Repeating patterns: ${/([a-zA-Z])\1{2,}/.test(profile.username || '') ? 'YES - Bot-like' : 'NO - Normal'}
+   - Username length: ${(profile.username || '').length} characters
+
+2. ACTIVITY RATE ANALYSIS
+   - Posts per day: ${profile.account_age_days > 0 ? ((profile.total_posts || 0) / profile.account_age_days).toFixed(2) : 'N/A'}
+   - Followers per day: ${profile.account_age_days > 0 ? ((profile.followers || 0) / profile.account_age_days).toFixed(2) : 'N/A'}
+   - Following per day: ${profile.account_age_days > 0 ? ((profile.following || 0) / profile.account_age_days).toFixed(2) : 'N/A'}
+   - Engagement ratio: ${profile.following > 0 ? ((profile.followers / profile.following) * 100).toFixed(2) + '%' : 'N/A'}
+
+3. PROFILE METRICS
+   - Statuses count: ${profile.total_posts || 0}
+   - Followers count: ${profile.followers || 0}
+   - Friends count: ${profile.following || 0}
+   - Favourites count: ${profile.favourites_count || 'N/A'}
+   - Listed count: ${profile.listed_count || 'N/A'}
+   - Default profile: ${profile.default_profile ? 'YES' : 'NO'}
+   - Default profile image: ${profile.default_profile_image ? 'YES' : 'NO'}
+   - Geo enabled: ${profile.geo_enabled ? 'YES' : 'NO'}
+
+4. BIO CONTENT ANALYSIS
+   - Has URL: ${profile.biography && /https?:\/\/|www\./i.test(profile.biography) ? 'YES - Potential spam' : 'NO - Normal'}
+   - Bio spam score: ${profile.biography ? ((profile.biography.toLowerCase().match(/\b(free|win|prize|discount|offer|limited|click|http|www)\b/g) || []).length / 3 * 100).toFixed(1) + '%' : '0%'}
+   - Has emojis: ${profile.biography && /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}]/u.test(profile.biography) ? 'YES' : 'NO'}
+
+TECHNICAL ML MODEL PARAMETERS:
+1. RANDOM FOREST MODEL
+   - n_estimators: 100 decision trees
+   - max_depth: 10 levels maximum
+   - min_samples_split: 5 samples to split
+   - min_samples_leaf: 2 samples minimum
+   - class_weight: 'balanced' for imbalanced data
+   - oob_score: True for validation
+   - Feature scaling: StandardScaler applied
+
+2. SVM MODEL
+   - Kernel: RBF (Radial Basis Function)
+   - C parameter: Optimized via grid search (0.01 to 100)
+   - Gamma parameter: Optimized via grid search (0.01 to 100)
+   - Cross-validation: 5-fold stratified
+   - Feature scaling: Standardized preprocessing
+
+3. NEURAL NETWORK MODEL
+   - Hidden layers: Multi-layer perceptron
+   - Activation: Softmax output layer
+   - Learning rate: 0.1
+   - Momentum: 0.05
+   - Weight decay: 0.01
+   - Max epochs: 100
+   - Validation split: 15%
+
+STATISTICAL VALIDATION:
+- Model accuracy: ${confidence}%
+- Risk score: ${data.analysis.risk_score || 0}/100
+- Confidence classification: ${confidence >= 80 ? 'HIGH CONFIDENCE' : confidence >= 60 ? 'MEDIUM CONFIDENCE' : 'LOW CONFIDENCE'}
+- Profile classification: ${isReal ? 'AUTHENTIC' : 'SUSPICIOUS'}
+- Feature importance: Automatically calculated by ML models
+- Cross-validation scores: Model stability metrics
 
 ADDITIONAL NOTES
 ----------------
@@ -1875,17 +2376,24 @@ For more information, visit: ShadowSniper
                     },
                     body: JSON.stringify({ username })
                 });
-
+                
                 const data = await response.json();
-
-                if (response.ok) {
+                
+                if (data.success) {
                     displayResults(data);
-                } else {
-                    throw new Error(data.error || 'Analysis failed');
+                } else if (data.error) {
+                    let errorMessage = data.error;
+                    
+                    // Handle rate limit errors specifically
+                    if (data.error_type === 'rate_limit') {
+                        errorMessage = `⏰ ${data.error}<br><small>Retry after: ${data.retry_after}</small>`;
+                    }
+                    
+                    showError(errorMessage);
                 }
             } catch (error) {
-                console.error('Error:', error);
-                showError(error.message || 'Failed to analyze profile. Please try again.');
+                showError('Network error. Please try again.');
+            } finally {
                 hideLoading();
             }
         }

@@ -71,6 +71,9 @@ def predict_gender(name):
         return 1   # male
     return 0       # unknown
 
+# Initialize Instagram analyzer
+analyzer = InstagramAnalyzer()
+
 @app.route('/')
 def home():
     """Redirect to the Instagram analyzer page"""
@@ -251,41 +254,139 @@ def init_app():
     if not load_model():
         logger.warning("Failed to load model on startup. Will try lazy loading.")
 
-@app.route('/proxy-image/<path:image_url>')
-def proxy_image(image_url):
+@app.route('/proxy-image', methods=['GET'])
+def proxy_image():
     """Proxy Instagram images to avoid CORS issues."""
     import requests
-    from flask import Response
+    from flask import Response, request
+    from urllib.parse import unquote
+    import base64
+    import hashlib
+    import os
+    
+    logger.info(f"🔍 Proxy image endpoint called. Method: {request.method}, Args: {dict(request.args)}")
     
     try:
-        # Decode the URL
-        from urllib.parse import unquote
-        image_url = unquote(image_url)
+        # Get URL from query parameter
+        image_url = request.args.get('url')
         
-        # Fetch the image
-        response = requests.get(image_url, timeout=10)
+        logger.info(f"🔍 Raw image_url from args: {image_url[:100] if image_url else 'None'}...")
+        
+        if not image_url or image_url.strip() == '':
+            logger.warning("⚠️ No image URL provided to proxy")
+            return _get_placeholder_image()
+        
+        # Decode URL if needed
+        image_url = unquote(image_url).strip()
+        
+        logger.info(f"Decoded image URL: {image_url[:150]}...")
+        
+        # Validate URL
+        if not image_url.startswith('http'):
+            logger.warning(f"Invalid image URL (doesn't start with http): {image_url[:100]}...")
+            return _get_placeholder_image()
+        
+        logger.info(f"Fetching image from: {image_url[:150]}...")
+        
+        # Create cache directory
+        cache_dir = Path('static') / 'profile_images'
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create cache key from URL
+        url_hash = hashlib.md5(image_url.encode()).hexdigest()
+        cache_file = cache_dir / f"{url_hash}.jpg"
+        
+        # Check cache first
+        if cache_file.exists():
+            logger.info(f"Serving cached image: {cache_file}")
+            with open(cache_file, 'rb') as f:
+                return Response(f.read(), 
+                              mimetype='image/jpeg',
+                              headers={
+                                  'Cache-Control': 'public, max-age=86400',
+                                  'Access-Control-Allow-Origin': '*'
+                              })
+        
+        # Add proper headers for Instagram CDN requests
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://www.instagram.com/',
+            'Sec-Fetch-Dest': 'image',
+            'Sec-Fetch-Mode': 'no-cors',
+            'Sec-Fetch-Site': 'cross-site'
+        }
+        
+        # Fetch the image with proper headers
+        response = requests.get(image_url, headers=headers, timeout=15, allow_redirects=True, stream=True)
+        
+        logger.info(f"Image fetch response status: {response.status_code}")
         
         if response.status_code == 200:
+            # Get image content
+            image_content = response.content
+            
+            # Determine content type
+            content_type = response.headers.get('Content-Type', 'image/jpeg')
+            if 'image' not in content_type:
+                content_type = 'image/jpeg'
+            
+            # Cache the image
+            try:
+                with open(cache_file, 'wb') as f:
+                    f.write(image_content)
+                logger.info(f"Cached image: {cache_file}")
+            except Exception as cache_error:
+                logger.warning(f"Failed to cache image: {cache_error}")
+            
+            logger.info(f"Successfully fetched image, size: {len(image_content)} bytes, type: {content_type}")
+            
             # Return the image with appropriate headers
-            return Response(response.content, 
-                          mimetype=response.headers.get('Content-Type', 'image/jpeg'),
+            return Response(image_content, 
+                          mimetype=content_type,
                           headers={
-                              'Cache-Control': 'public, max-age=3600',
-                              'Access-Control-Allow-Origin': '*'
+                              'Cache-Control': 'public, max-age=86400',
+                              'Access-Control-Allow-Origin': '*',
+                              'Content-Type': content_type
                           })
         else:
+            logger.warning(f"Failed to fetch image: {response.status_code}")
             # Return placeholder if image fetch fails
-            placeholder_url = 'https://via.placeholder.com/150'
-            placeholder_response = requests.get(placeholder_url)
-            return Response(placeholder_response.content, 
-                          mimetype='image/jpeg')
+            return _get_placeholder_image()
+    except requests.exceptions.Timeout:
+        logger.error("Timeout while fetching image")
+        return _get_placeholder_image()
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error proxying image: {str(e)}")
+        return _get_placeholder_image()
     except Exception as e:
-        logger.error(f"Error proxying image: {str(e)}")
-        # Return placeholder on error
-        placeholder_url = 'https://via.placeholder.com/150'
-        placeholder_response = requests.get(placeholder_url)
+        logger.error(f"Error proxying image: {str(e)}", exc_info=True)
+        return _get_placeholder_image()
+
+def _get_placeholder_image():
+    """Get a placeholder image."""
+    import requests
+    from flask import Response
+    try:
+        placeholder_url = 'https://via.placeholder.com/150/cccccc/666666?text=No+Image'
+        placeholder_response = requests.get(placeholder_url, timeout=5)
         return Response(placeholder_response.content, 
-                      mimetype='image/jpeg')
+                      mimetype='image/png',
+                      headers={
+                          'Cache-Control': 'public, max-age=3600',
+                          'Access-Control-Allow-Origin': '*'
+                      })
+    except:
+        # Last resort: return a simple 1x1 transparent pixel
+        from base64 import b64decode
+        transparent_pixel = b64decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')
+        return Response(transparent_pixel, 
+                      mimetype='image/gif',
+                      headers={
+                          'Cache-Control': 'public, max-age=3600',
+                          'Access-Control-Allow-Origin': '*'
+                      })
 
 @app.route('/instagram')
 def instagram_analyzer():
@@ -294,84 +395,129 @@ def instagram_analyzer():
 
 @app.route('/api/analyze/instagram', methods=['POST'])
 def analyze_instagram():
-    """API endpoint to analyze an Instagram profile."""
+    """Analyze Instagram profile."""
     try:
         data = request.get_json()
-        username = data.get('username', '').strip('@ ')
+        username = data.get('username', '').strip('@')
         
         if not username:
             return jsonify({'error': 'Username is required'}), 400
-            
-        # Initialize the analyzer
-        analyzer = InstagramAnalyzer()
         
-        # Get the profile data
+        # Get profile data
         profile = analyzer.get_profile(username)
         
-        if not profile:
-            return jsonify({'error': 'Failed to fetch profile'}), 404
+        if profile is None:
+            return jsonify({
+                'error': 'Instagram is temporarily rate-limiting requests. Please wait a few minutes and try again.',
+                'error_type': 'rate_limit',
+                'retry_after': '5-10 minutes'
+            }), 429
+        
+        # Make prediction
+        print("✅ Profile data received successfully")
+        
+        # Log profile image URL for debugging
+        profile_pic_url = profile.get('profile_pic_url', '')
+        has_profile_pic = profile.get('has_profile_pic', False)
+        
+        print(f"🔍 Debug - Profile pic URL: {profile_pic_url[:100] if profile_pic_url else 'NOT FOUND'}...")
+        print(f"🔍 Debug - Has profile pic flag: {has_profile_pic}")
+        print(f"🔍 Debug - URL length: {len(profile_pic_url) if profile_pic_url else 0}")
+        
+        # Ensure profile_pic_url is set (even if empty)
+        if 'profile_pic_url' not in profile:
+            profile['profile_pic_url'] = ''
+        
+        # If has_profile_pic is True but URL is empty, try to get it from Instagram
+        if has_profile_pic and not profile_pic_url:
+            print("⚠️  Profile has pic flag but no URL - attempting to fetch...")
+            try:
+                # Try to get fresh profile data
+                fresh_profile = analyzer._try_instaloader_original(username)
+                if fresh_profile and fresh_profile.get('profile_pic_url'):
+                    profile['profile_pic_url'] = fresh_profile['profile_pic_url']
+                    print(f"✅ Retrieved profile pic URL: {profile['profile_pic_url'][:100]}...")
+            except Exception as e:
+                print(f"⚠️  Could not fetch profile pic URL: {e}")
+        
+        # Ensure has_profile_pic matches reality
+        if profile.get('profile_pic_url') and profile['profile_pic_url'].strip():
+            profile['has_profile_pic'] = True
+        elif not profile.get('profile_pic_url') or not profile['profile_pic_url'].strip():
+            profile['has_profile_pic'] = False
+        
+        # Make prediction using the detector
+        print("🤖 Making prediction...")
+        prediction = analyzer.detector.predict(profile)
+        
+        print(f"🔍 Debug - Profile total_posts: {profile.get('total_posts', 'NOT FOUND')}")
+        print(f"🔍 Debug - Prediction confidence: {prediction.get('confidence', 'NOT FOUND')}")
+        
+        return jsonify({
+            'success': True, 
+            'profile': profile,
+            'analysis': prediction
+        })
             
-        # Analyze the profile
-        analyzer.analyze_profile(username)
-        
-        # Calculate confidence based on profile characteristics
-        is_fake = profile.get('is_fake', False)
-        confidence = 0
-        
-        # Base confidence
-        if not is_fake:
-            confidence = 85  # Base confidence for real profiles
-            # Increase confidence for verified accounts
-            if profile.get('is_verified', False):
-                confidence = 95
-            # Increase confidence for accounts with substantial followers
-            elif profile.get('followers', 0) > 10000:
-                confidence = 90
-            # Increase confidence for accounts with posts
-            elif profile.get('posts', 0) > 50:
-                confidence = 88
-        else:
-            confidence = 75  # Base confidence for fake profiles
-            # Increase confidence if obvious fake signs
-            if profile.get('followers', 0) == 0:
-                confidence = 85
-            elif profile.get('posts', 0) == 0:
-                confidence = 80
-        
-        # Prepare the response
-        response = {
-            'success': True,
-            'profile': {
-                'username': profile.get('username', ''),
-                'full_name': profile.get('full_name', ''),
-                'biography': profile.get('biography', ''),
-                'external_url': profile.get('external_url', ''),
-                'followers': profile.get('followers', 0),
-                'following': profile.get('following', 0),
-                'posts': profile.get('posts', 0),
-                'is_private': profile.get('is_private', False),
-                'is_verified': profile.get('is_verified', False),
-                'profile_pic_url': profile.get('profile_pic_url', '')
-            },
-            'analysis': {
-                'is_fake': is_fake,
-                'confidence': confidence / 100,  # Convert to decimal
-                'reasons': profile.get('reasons', [])
-            },
-            'timestamp': datetime.utcnow().isoformat()
-        }
-        
-        return jsonify(response)
-        
     except Exception as e:
-        logger.error(f"Error analyzing Instagram profile: {str(e)}")
+        print(f"❌ Flask route error: {str(e)}")
+        print(f"Error type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Analysis failed: {str(e)}'}), 500
+
+@app.route('/api/test/instagram', methods=['GET'])
+def test_instagram():
+    """Test endpoint to verify Instagram functionality."""
+    try:
+        print("🧪 Testing Instagram connection...")
+        analyzer = InstagramAnalyzer()
+        profile = analyzer.get_profile('instagram')
+        
+        if profile:
+            return jsonify({
+                'success': True,
+                'test_profile': {
+                    'username': profile.get('username'),
+                    'followers': profile.get('followers'),
+                    'following': profile.get('following'),
+                    'posts': profile.get('total_posts'),
+                    'profile_pic_url': profile.get('profile_pic_url', ''),
+                    'has_profile_pic': profile.get('has_profile_pic', False)
+                }
+            })
+        else:
+            return jsonify({'error': 'Test failed'}), 500
+            
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-if __name__ == '__main__':
-    init_app()
+@app.route('/api/test/image')
+def test_image():
+    """Test endpoint to verify image proxy functionality."""
+    from flask import request
+    test_url = request.args.get('url', 'https://via.placeholder.com/150')
+    
     try:
-        port = int(os.environ.get('PORT', 5000))
-        app.run(host='0.0.0.0', port=port, debug=True)
+        import requests
+        response = requests.get(test_url, timeout=10)
+        return jsonify({
+            'success': response.status_code == 200,
+            'status_code': response.status_code,
+            'content_type': response.headers.get('Content-Type'),
+            'content_length': len(response.content) if response.status_code == 200 else 0
+        })
     except Exception as e:
-        logger.critical(f"Failed to start application: {str(e)}")
-        raise
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/test-proxy')
+def test_proxy():
+    """Test the proxy endpoint with a known good image."""
+    test_image_url = 'https://via.placeholder.com/150/cccccc/666666?text=Test+Image'
+    return redirect(f'/proxy-image?url={test_image_url}')
+
+if __name__ == '__main__':
+    app.run(debug=False, host='0.0.0.0', port=5000)
